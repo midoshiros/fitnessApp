@@ -10,6 +10,8 @@ import Foundation
 @Observable
 class HomeVm {
     
+    let healthManager = HealthManager.shared
+    
     var calories: Int = 120
     var active: Int = 50
     var stand: Int = 8
