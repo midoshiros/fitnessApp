@@ -5,7 +5,7 @@
 //  Created by Ahmad Hamdy on 15/12/2025.
 //
 
-import SwiftUI
+internal import SwiftUI
 
 
 

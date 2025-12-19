@@ -5,7 +5,7 @@
 //  Created by Ahmad Hamdy on 14/12/2025.
 //
 
-import SwiftUI
+internal import SwiftUI
 
 
 struct ActivtyCard: View {
@@ -44,5 +44,5 @@ struct ActivtyCard: View {
 }
 
 #Preview {
-    ActivtyCard(activity: Activity(id: 0, title: "Today Stips", subTitle: "Goal 10,000", image: "figure.walk", tintColor: .green, amount: 9812))
+    ActivtyCard(activity: Activity(id: 0, title: "Today Stips", subTitle: "Goal 10,000", image: "figure.walk", tintColor: .green, amount: "9812"))
 }

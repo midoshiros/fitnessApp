@@ -5,7 +5,7 @@
 //  Created by Ahmad Hamdy on 12/12/2025.
 //
 
-import SwiftUI
+internal import SwiftUI
 
 struct Home: View {
     @State var vm = HomeVm()
@@ -40,7 +40,7 @@ struct Home: View {
                                     .font(.callout)
                                     .foregroundColor(.green)
                                 
-                                Text("\(vm.active)")
+                                Text("\(vm.exercise)")
                                     .bold()
                             }
                             .padding(.bottom, 20)
@@ -62,7 +62,7 @@ struct Home: View {
                         ZStack{
                             ProgressCircle(progress: $vm.calories, goal: 400, color: .red)
                             
-                            ProgressCircle(progress: $vm.active, goal: 60, color: .green)
+                            ProgressCircle(progress: $vm.exercise, goal: 60, color: .green)
                                 .padding(.all, 20)
                             ProgressCircle(progress: $vm.stand, goal: 12, color: .blue)
                                 .padding(.all, 40)
@@ -96,13 +96,15 @@ struct Home: View {
                     }
                     .padding(.horizontal)
                     
-                    
-                    LazyVGrid( columns: Array(repeating: GridItem(spacing: 20), count: 2)  ){
-                        ForEach(MockData.mockActivity) { activity in
-                            ActivtyCard(activity: activity)
+                    if !vm.activities.isEmpty{
+                        LazyVGrid( columns: Array(repeating: GridItem(spacing: 20), count: 2)  ){
+                            ForEach(vm.activities, id: \.title) { activity in
+                                ActivtyCard(activity: activity)
+                            }
                         }
+                        .padding()
                     }
-                    .padding()
+                    
                     
                     HStack{
                         Text("Fitness Activity")

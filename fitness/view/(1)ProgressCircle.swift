@@ -5,7 +5,7 @@
 //  Created by Ahmad Hamdy on 12/12/2025.
 //
 
-import SwiftUI
+internal import SwiftUI
 
 struct ProgressCircle: View {
     @Binding var progress: Int

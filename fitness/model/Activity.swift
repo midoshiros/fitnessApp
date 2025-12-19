@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftUI
+internal import SwiftUI
 
 struct Activity : Identifiable{
     
@@ -15,5 +15,5 @@ struct Activity : Identifiable{
     let subTitle: String
     let image: String
     let tintColor: Color
-    let amount: Int
+    let amount: String
 }

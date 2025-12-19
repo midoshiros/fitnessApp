@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftUI
+internal import SwiftUI
 
 struct Workout: Identifiable{
     let id: UUID

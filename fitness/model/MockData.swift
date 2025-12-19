@@ -6,14 +6,14 @@
 //
 
 import Foundation
-import SwiftUI
+internal import SwiftUI
 
 struct MockData {
    static let mockActivity: [Activity] = [
-        Activity(id: 1, title: "Today Steps", subTitle: "Goal 10,000", image: "figure.walk", tintColor: .green, amount: 9812),
-        Activity(id: 2, title: "Calories", subTitle: "Goal 500", image: "figure.walk", tintColor: .red, amount: 420),
-        Activity(id: 3, title: "Calories", subTitle: "Goal 500", image: "flame", tintColor: .purple, amount: 6420),
-        Activity(id: 4, title: "Calories", subTitle: "Goal 500", image: "figure.run", tintColor: .blue, amount: 6420)
+        Activity(id: 1, title: "Today Steps", subTitle: "Goal 10,000", image: "figure.walk", tintColor: .green, amount: "9812"),
+        Activity(id: 2, title: "Calories", subTitle: "Goal 500", image: "figure.walk", tintColor: .red, amount: "420"),
+        Activity(id: 3, title: "Calories", subTitle: "Goal 500", image: "flame", tintColor: .purple, amount: "6420"),
+        Activity(id: 4, title: "Calories", subTitle: "Goal 500", image: "figure.run", tintColor: .blue, amount: "6420")
         
     ]
     
