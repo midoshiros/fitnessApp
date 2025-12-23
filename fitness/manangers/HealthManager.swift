@@ -8,36 +8,72 @@ import Foundation
 import HealthKit
 internal import SwiftUI
 
-extension Date {
-    static var startOfDay: Date {
-        let calender = Calendar.current
-        return calender.startOfDay(for: Date())
-    }
-}
+import Foundation
 
 extension Date {
-    static var startOfweek: Date {
-        let calender = Calendar.current
-        var components = calender.dateComponents([.yearForWeekOfYear, .weekOfYear ], from: Date())
-        components.weekday = 2
-        return calender.date(from: components) ?? Date()
+
+    // Start of today
+    static var startOfDay: Date {
+        Calendar.current.startOfDay(for: Date())
     }
+
+    // Start of current week (locale-aware)
+    static var startOfWeek: Date {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: Date())
+        return calendar.date(from: components) ?? Date()
+    }
+
+    // Month start & end
+    func monthStartAndEnd() -> (start: Date, end: Date) {
+        let calendar = Calendar.current
+
+        let startComponents = calendar.dateComponents([.year, .month], from: self)
+        let start = calendar.date(from: startComponents) ?? self
+
+        let end = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: start) ?? self
+
+        return (start, end)
+    }
+    
+    
+    func formatWorkoutDate() -> String{
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        return formatter.string(from: self)
+    }
+    
 }
+
 
 extension Double {
-    func formattedNumberString() -> String{
+
+    private static let integerFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 0
-        
-        return formatter.string(from: NSNumber(value: self)) ?? "0"
+        return formatter
+    }()
+
+    func formattedNumberString() -> String {
+        Self.integerFormatter.string(from: NSNumber(value: self)) ?? "0"
     }
 }
+
+extension TimeInterval {
+
+    var minutesString: String {
+        let minutes = Int(self) / 60
+        return "\(minutes) min"
+    }
+}
+
+
 
 class HealthManager {
     
     static let shared = HealthManager()
-   
+    
     let healthStore = HKHealthStore()
     
     private init () {
@@ -135,7 +171,7 @@ class HealthManager {
     
     func fetchCurrentWeekWorkoutStats(completion: @escaping(Result<[Activity], Error>) -> Void) {
         let workouts = HKSampleType.workoutType()
-        let predicate = HKQuery.predicateForSamples(withStart: .startOfweek, end: Date())
+        let predicate = HKQuery.predicateForSamples(withStart: .startOfWeek, end: Date())
         let quiry = HKSampleQuery(sampleType: workouts, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { [weak self]_, result, error in
             guard let workouts = result as? [HKWorkout] , let self = self, error == nil  else {
                 completion(.failure(URLError(.badURL)) )
@@ -183,7 +219,38 @@ class HealthManager {
         ]
     }
     
+    
+    
+    
+    
+    // MARK: Recent Workouts
+    func fetchWorkoutsForMonth(month: Date, completion: @escaping(Result<[Workout], Error>) -> Void){
+        let workouts = HKSampleType.workoutType()
+        let(startDate, endDate) = month.monthStartAndEnd()
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate)
+        
+        let sortDescript = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+        
+        let query = HKSampleQuery(sampleType: workouts, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors:[sortDescript]) {_,result,error in
+            guard let workouts = result as? [HKWorkout] , error == nil else {
+                completion(.failure(URLError(.badURL)) )
+                return
+            }
+          
+            let workoutsArray = workouts.map {
+                Workout(
+                    id: UUID(),
+                    title: $0.workoutActivityType.name,
+                    image: $0.workoutActivityType.image,
+                    tintColor: $0.workoutActivityType.color,
+                    duration: $0.duration.minutesString,
+                    date: $0.startDate.formatWorkoutDate(),
+                    calories: ($0.totalEnergyBurned?
+                        .doubleValue(for: .kilocalorie())
+                        .formattedNumberString() ?? "-"  ) + "Kcal" ) }
+            completion(.success(workoutsArray))
+        }
+        healthStore.execute(query)
+    }
+    
 }
-
-
-

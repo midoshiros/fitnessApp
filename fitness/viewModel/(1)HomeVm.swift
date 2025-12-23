@@ -12,6 +12,12 @@ class HomeVm {
     var exercise: Int = 50
     var stand: Int = 8
     var activities = [Activity]()
+    var workouts = [
+        Workout(id: UUID(), title: "Running", image: "figure.run",tintColor: .cyan, duration: "51 mins", date: "jan 3", calories: "345"),
+        Workout(id: UUID(), title: "Running", image: "figure.run",tintColor: .red, duration: "51 mins", date: "jan 3", calories: "345"),
+        Workout(id: UUID(), title: "Running", image: "figure.run",tintColor: .blue, duration: "51 mins", date: "jan 3", calories: "345"),
+        Workout(id: UUID(), title: "Running", image: "figure.run",tintColor: .green, duration: "51 mins", date: "jan 3", calories: "345")
+    ]
     
     init() {
         Task {
@@ -20,8 +26,10 @@ class HomeVm {
                 fetchTodayCalories()
                 fetchTodayExerciseTime()
                 fetchTodayStandHour()
+                fetchTodaySteps()
                 fetchCurrentWeekActivites()
-            } catch {
+                fetchRecentWorkouts()
+                } catch {
                 print(error.localizedDescription)
             }
         }
@@ -93,6 +101,21 @@ class HomeVm {
             
         }
     }
+    
+    
+    func fetchRecentWorkouts() {
+        healthManager.fetchWorkoutsForMonth(month: Date()) {result in
+            switch result {
+            case .success( let workouts):
+                self.workouts = Array(workouts.prefix(4))
+            case .failure(let faluire):
+                print(faluire.localizedDescription)
+            }
+        }
+    }
+    
+    
+    
 }
 
 
