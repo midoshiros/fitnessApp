@@ -11,6 +11,7 @@ class HomeVm {
     var calories: Int = 120
     var exercise: Int = 50
     var stand: Int = 8
+    
     var activities = [Activity]()
     var workouts = [
         Workout(id: UUID(), title: "Running", image: "figure.run",tintColor: .cyan, duration: "51 mins", date: "jan 3", calories: "345"),
@@ -65,16 +66,17 @@ class HomeVm {
     //
     func fetchTodayStandHour() {
         healthManager.fetchTodayStandHour { result in
-            switch result {
-            case .success(let hours):
-                self.stand = Int(hours)
-                
-            case .failure(let error):
-                print(error.localizedDescription)
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let hours):
+                    self.stand = Int(hours)
+                    
+                case .failure(let error):
+                    print(error.localizedDescription)
+                }
             }
         }
     }
-    
     
     // MARK: Fitness Activity
     func fetchTodaySteps(){

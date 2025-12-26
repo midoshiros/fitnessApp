@@ -19,7 +19,6 @@ struct Home: View {
                         .padding()
                     
                     HStack( ){
-                        
                         Spacer()
                         
                         VStack(alignment: .leading){
@@ -54,7 +53,6 @@ struct Home: View {
                                 Text("\(vm.stand)")
                                     .bold()
                             }
-                            
                         }
                         
                         Spacer()
@@ -68,13 +66,10 @@ struct Home: View {
                                 .padding(.all, 40)
                         }
                         .padding()
+                       
                         Spacer()
-                        
-                        
-                        
                     }
                     .padding()
-                    
                     
                     HStack{
                         Text("Fitness Activity")
@@ -107,7 +102,7 @@ struct Home: View {
                     
                     
                     HStack{
-                        Text("Fitness Activity")
+                        Text("Recent Workouts")
                             .font(.title2)
                         
                         Spacer()

@@ -76,16 +76,7 @@ class HealthManager {
     
     let healthStore = HKHealthStore()
     
-    private init () {
-        
-        Task {
-            do {
-                try await requestHealtKitAccess()
-            } catch{
-                print(error.localizedDescription)
-            }
-        }
-    }
+    private init () {}
     
     
     func requestHealtKitAccess() async throws {
@@ -93,7 +84,7 @@ class HealthManager {
         let calories = HKQuantityType(.activeEnergyBurned)
         let exercise = HKQuantityType(.appleExerciseTime)
         let stand    = HKCategoryType(.appleStandHour)
-        let steps   = HKQuantityType(.stepCount)
+        let steps    = HKQuantityType(.stepCount)
         let workouts = HKSampleType.workoutType()
         
         let healthTypes: Set = [calories, exercise, stand, steps, workouts]
@@ -116,7 +107,6 @@ class HealthManager {
         
     }
     
-    
     func fetchTodayExerciseTime(completion: @escaping(Result<Double, Error> ) -> Void){
         
         let exercise  = HKQuantityType(.appleExerciseTime)
@@ -132,7 +122,6 @@ class HealthManager {
         
     }
     
-    
     func fetchTodayStandHour(completion: @escaping(Result<Int, Error> ) -> Void){
         
         let stand     = HKCategoryType(.appleStandHour)
@@ -141,116 +130,112 @@ class HealthManager {
             guard let samples = result as? [HKCategorySample] , error == nil  else {
                 completion(.failure(URLError(.badURL)) )
                 return }
-            print(samples)
-            print(samples.map({ $0.value }))
-            let standCount = samples.filter({$0.value == 0 }).count
+            
+            let standCount = samples.filter({$0.value == 1 }).count
             
             completion(.success(standCount))
         }
-        
-        
         healthStore.execute(query)
-        
     }
-    
-    // MARK: Fitness Activity
-    func fetchTodaySteps(completion: @escaping(Result<Activity, Error>) -> Void) {
-        
-        let steps   = HKQuantityType(.stepCount)
-        let predicate = HKQuery.predicateForSamples(withStart: .startOfDay, end: Date())
-        let query = HKStatisticsQuery(quantityType: steps, quantitySamplePredicate: predicate) { _, results, error in
-            guard let quantity = results?.sumQuantity(), error == nil  else{completion(.failure(URLError(.badURL) ) )
-                return
+        // MARK: Fitness Activity
+        func fetchTodaySteps(completion: @escaping(Result<Activity, Error>) -> Void) {
+            
+            let steps   = HKQuantityType(.stepCount)
+            let predicate = HKQuery.predicateForSamples(withStart: .startOfDay, end: Date())
+            let query = HKStatisticsQuery(quantityType: steps, quantitySamplePredicate: predicate) { _, results, error in
+                guard let quantity = results?.sumQuantity(), error == nil  else{completion(.failure(URLError(.badURL) ) )
+                    return
+                }
+                let steps = quantity.doubleValue(for: .count())
+                let activity = Activity(id: 7, title: "Today Steps", subTitle: "Goal: 800", image: "figure.walk", tintColor: .red, amount: steps.formattedNumberString())
+                completion(.success(activity))
             }
-            let steps = quantity.doubleValue(for: .count())
-            let activity = Activity(id: 7, title: "Today Steps", subTitle: "Goal: 800", image: "figure.walk", tintColor: .red, amount: steps.formattedNumberString())
-            completion(.success(activity))
+            healthStore.execute(query)
         }
-        healthStore.execute(query)
-    }
-    
-    func fetchCurrentWeekWorkoutStats(completion: @escaping(Result<[Activity], Error>) -> Void) {
-        let workouts = HKSampleType.workoutType()
-        let predicate = HKQuery.predicateForSamples(withStart: .startOfWeek, end: Date())
-        let quiry = HKSampleQuery(sampleType: workouts, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { [weak self]_, result, error in
-            guard let workouts = result as? [HKWorkout] , let self = self, error == nil  else {
-                completion(.failure(URLError(.badURL)) )
-                return
-            }
-            
-            var runningCount = 0
-            var strengthCount = 0
-            var fotballCount = 0
-            var basketballCount = 0
-            var stairsCount = 0
-            var kickboxingCount = 0
-            
-            for workout in workouts {
-                let duration = Int(workout.duration) / 60
-                if workout.workoutActivityType == .running {
-                    runningCount += duration
-                } else if workout.workoutActivityType == .traditionalStrengthTraining {
-                    strengthCount += duration
-                }else if workout.workoutActivityType == .soccer {
-                    fotballCount += duration
-                }else if workout.workoutActivityType == .baseball {
-                    basketballCount += duration
-                }else if workout.workoutActivityType == .stairClimbing {
-                    stairsCount += duration
-                }else if workout.workoutActivityType == .kickboxing {
-                    kickboxingCount += duration
+        
+        func fetchCurrentWeekWorkoutStats(completion: @escaping(Result<[Activity], Error>) -> Void) {
+            let workouts = HKSampleType.workoutType()
+            let predicate = HKQuery.predicateForSamples(withStart: .startOfWeek, end: Date())
+            let quiry = HKSampleQuery(sampleType: workouts, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { [weak self]_, result, error in
+                guard let workouts = result as? [HKWorkout] , let self = self, error == nil  else {
+                    completion(.failure(URLError(.badURL)) )
+                    return
                 }
                 
+                var runningCount = 0
+                var strengthCount = 0
+                var fotballCount = 0
+                var basketballCount = 0
+                var stairsCount = 0
+                var kickboxingCount = 0
+                
+                for workout in workouts {
+                    let duration = Int(workout.duration) / 60
+                    if workout.workoutActivityType == .running {
+                        runningCount += duration
+                    } else if workout.workoutActivityType == .traditionalStrengthTraining {
+                        strengthCount += duration
+                    }else if workout.workoutActivityType == .soccer {
+                        fotballCount += duration
+                    }else if workout.workoutActivityType == .baseball {
+                        basketballCount += duration
+                    }else if workout.workoutActivityType == .stairClimbing {
+                        stairsCount += duration
+                    }else if workout.workoutActivityType == .kickboxing {
+                        kickboxingCount += duration
+                    }
+                    
+                }
+                
+                completion(.success(generateActivitiesFromDuration(running: runningCount, strength: strengthCount, soccer: fotballCount, basketball: basketballCount, stairs: stairsCount, kickboxing: kickboxingCount)))
             }
+            healthStore.execute(quiry)
+        }
+        
+        func generateActivitiesFromDuration(running: Int, strength: Int, soccer: Int, basketball: Int, stairs: Int, kickboxing: Int) -> [Activity] {
+            return [
+                Activity(id: 8,  title: "Running", subTitle: "This week", image: "figure.run", tintColor: .red, amount: "\(running) mins"),
+                Activity(id: 9,  title: "strength", subTitle: "This week", image: "dumbbell", tintColor: .blue, amount: "\(strength) mins"),
+                Activity(id: 10, title: "soccer", subTitle: "This week", image: "figure.soccer", tintColor: .green, amount: "\(soccer) mins"),
+                Activity(id: 11, title: "basketball", subTitle: "This week", image: "figure.basketball", tintColor: .yellow, amount: "\(basketball) mins"),
+                Activity(id: 12, title: "stairs", subTitle: "This week", image: "figure.stairs", tintColor: .indigo, amount: "\(stairs) mins"),
+                Activity(id: 13, title: "kickboxing", subTitle: "This week", image: "figure.kickboxing", tintColor: .black, amount: "\(kickboxing) mins"),
+            ]
+        }
+        
+        
+        
+        
+        
+        // MARK: Recent Workouts
+        func fetchWorkoutsForMonth(month: Date, completion: @escaping(Result<[Workout], Error>) -> Void){
+            let workouts = HKSampleType.workoutType()
+            let(startDate, endDate) = month.monthStartAndEnd()
+            let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate)
             
-            completion(.success(generateActivitiesFromDuration(running: runningCount, strength: strengthCount, soccer: fotballCount, basketball: basketballCount, stairs: stairsCount, kickboxing: kickboxingCount)))
-        }
-        healthStore.execute(quiry)
-    }
-    
-    func generateActivitiesFromDuration(running: Int, strength: Int, soccer: Int, basketball: Int, stairs: Int, kickboxing: Int) -> [Activity] {
-        return [
-            Activity(id: 8,  title: "Running", subTitle: "This week", image: "figure.run", tintColor: .red, amount: "\(running) mins"),
-            Activity(id: 9,  title: "strength", subTitle: "This week", image: "dumbbell", tintColor: .blue, amount: "\(strength) mins"),
-            Activity(id: 10, title: "soccer", subTitle: "This week", image: "figure.soccer", tintColor: .green, amount: "\(soccer) mins"),
-            Activity(id: 11, title: "basketball", subTitle: "This week", image: "figure.basketball", tintColor: .yellow, amount: "\(basketball) mins"),
-            Activity(id: 12, title: "stairs", subTitle: "This week", image: "figure.stairs", tintColor: .indigo, amount: "\(stairs) mins"),
-            Activity(id: 13, title: "kickboxing", subTitle: "This week", image: "figure.kickboxing", tintColor: .black, amount: "\(kickboxing) mins"),
-        ]
-    }
-    
-    
-    
-    
-    
-    // MARK: Recent Workouts
-    func fetchWorkoutsForMonth(month: Date, completion: @escaping(Result<[Workout], Error>) -> Void){
-        let workouts = HKSampleType.workoutType()
-        let(startDate, endDate) = month.monthStartAndEnd()
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate)
-        
-        let sortDescript = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
-        
-        let query = HKSampleQuery(sampleType: workouts, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors:[sortDescript]) {_,result,error in
-            guard let workouts = result as? [HKWorkout] , error == nil else {
-                completion(.failure(URLError(.badURL)) )
-                return
+            let sortDescript = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+            
+            let query = HKSampleQuery(sampleType: workouts, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors:[sortDescript]) {_,result,error in
+                guard let workouts = result as? [HKWorkout] , error == nil else {
+                    completion(.failure(URLError(.badURL)) )
+                    return
+                }
+                
+                let workoutsArray = workouts.map {
+                    Workout(
+                        id: UUID(),
+                        title: $0.workoutActivityType.name,
+                        image: $0.workoutActivityType.image,
+                        tintColor: $0.workoutActivityType.color,
+                        duration: $0.duration.minutesString,
+                        date: $0.startDate.formatWorkoutDate(),
+                        calories: ($0.totalEnergyBurned?
+                            .doubleValue(for: .kilocalorie())
+                            .formattedNumberString() ?? "-"  ) + "Kcal" ) }
+                completion(.success(workoutsArray))
             }
-          
-            let workoutsArray = workouts.map {
-                Workout(
-                    id: UUID(),
-                    title: $0.workoutActivityType.name,
-                    image: $0.workoutActivityType.image,
-                    tintColor: $0.workoutActivityType.color,
-                    duration: $0.duration.minutesString,
-                    date: $0.startDate.formatWorkoutDate(),
-                    calories: ($0.totalEnergyBurned?
-                        .doubleValue(for: .kilocalorie())
-                        .formattedNumberString() ?? "-"  ) + "Kcal" ) }
-            completion(.success(workoutsArray))
+            healthStore.execute(query)
         }
-        healthStore.execute(query)
+        
     }
-    
-}
+

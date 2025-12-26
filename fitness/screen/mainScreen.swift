@@ -10,49 +10,24 @@ internal import SwiftUI
 struct MainScreen: View {
     @State private var selectedTab = "Home"
     
-    init() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        
-        // Selected state
-        appearance.stackedLayoutAppearance.selected.iconColor = .green
-        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
-            .foregroundColor: UIColor.green
-        ]
-        
-        // Unselected state (optional but recommended)
-        appearance.stackedLayoutAppearance.normal.iconColor = .gray
-        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
-            .foregroundColor: UIColor.gray
-        ]
-        
-        // Apply to both standard and scroll edge
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
-    }
-    
     var body: some View {
         TabView(selection: $selectedTab) {
             Home()
                 .tabItem {
-                    Image(systemName: "house")
-                    Text("Home")
+                    Label("Home", systemImage: "house")
                 }
                 .tag("Home")
             
             HistoryData()
                 .tabItem {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                    Text("Charts")
+                    Label("Charts", systemImage: "chart.line.uptrend.xyaxis")
                 }
                 .tag("History")
         }
+        .tint(.green)
     }
 }
 
 #Preview {
     MainScreen()
 }
-
-
-
