@@ -18,7 +18,7 @@ struct MainScreen: View {
                 }
                 .tag("Home")
             
-            HistoryData()
+            chart()
                 .tabItem {
                     Label("Charts", systemImage: "chart.line.uptrend.xyaxis")
                 }

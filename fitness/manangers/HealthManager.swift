@@ -212,7 +212,6 @@ class HealthManager {
             let workouts = HKSampleType.workoutType()
             let(startDate, endDate) = month.monthStartAndEnd()
             let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate)
-            
             let sortDescript = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
             
             let query = HKSampleQuery(sampleType: workouts, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors:[sortDescript]) {_,result,error in
