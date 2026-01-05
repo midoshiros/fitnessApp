@@ -6,7 +6,7 @@
 //
 import Foundation
 import HealthKit
-internal import SwiftUI
+import SwiftUI
 
 @available(iOS 18.0, *)
 extension HKWorkoutActivityType {

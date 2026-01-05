@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-internal import SwiftUI
+import SwiftUI
 
 @MainActor
 @Observable

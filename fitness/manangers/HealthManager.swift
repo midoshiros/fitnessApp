@@ -6,7 +6,7 @@
 
 import Foundation
 import HealthKit
-internal import SwiftUI
+import SwiftUI
 
 import Foundation
 
@@ -237,4 +237,131 @@ class HealthManager {
         }
         
     }
+
+//MARK: charts View Data
+//MARK: Charts View Data
+extension HealthManager {
+   
+    struct YearChartDataResult {
+        let ytd: [StepModel]
+        let oneYear: [StepModel]
+    }
+    
+    func fetchYTDAndOneYearChartData(completion: @escaping (Result<YearChartDataResult, Error>) -> Void) {
+        let steps = HKQuantityType(.stepCount)
+        let calendar = Calendar.current
+        let now = Date()
+        
+        let oneYearAgo = calendar.date(byAdding: .year, value: -1, to: now) ?? now
+        let startOfYear = calendar.date(from: calendar.dateComponents([.year], from: now)) ?? now
+        
+        let predicate = HKQuery.predicateForSamples(withStart: oneYearAgo, end: now)
+        let interval = DateComponents(month: 1)
+        let anchorDate = calendar.date(from: calendar.dateComponents([.year, .month], from: oneYearAgo)) ?? oneYearAgo
+        
+        let query = HKStatisticsCollectionQuery(
+            quantityType: steps,
+            quantitySamplePredicate: predicate,
+            options: .cumulativeSum,
+            anchorDate: anchorDate,
+            intervalComponents: interval
+        )
+        
+        query.initialResultsHandler = { query, results, error in
+            guard let results = results, error == nil else {
+                completion(.failure(error ?? URLError(.badURL)))
+                return
+            }
+            
+            var oneYearData: [StepModel] = []
+            var ytdData: [StepModel] = []
+            
+            results.enumerateStatistics(from: oneYearAgo, to: now) { statistics, stop in
+                if let sum = statistics.sumQuantity() {
+                    let stepCount = Int(sum.doubleValue(for: .count()))
+                    let stepModel = StepModel(date: statistics.startDate, count: stepCount)
+                    
+                    oneYearData.append(stepModel)
+                    
+                    if statistics.startDate >= startOfYear {
+                        ytdData.append(stepModel)
+                    }
+                }
+            }
+            
+            let result = YearChartDataResult(ytd: ytdData, oneYear: oneYearData)
+            completion(.success(result))
+        }
+        
+        healthStore.execute(query)
+    }
+    
+    func fetchChartData(for option: ChartOptions, completion: @escaping(Result<[StepModel], Error>) -> Void) {
+        let steps = HKQuantityType(.stepCount)
+        let calendar = Calendar.current
+        let now = Date()
+        
+        var startDate: Date
+        var interval: DateComponents
+        var anchorDate: Date
+        
+        switch option {
+        case .oneWeek:
+            startDate = calendar.date(byAdding: .day, value: -7, to: now) ?? now
+            interval = DateComponents(day: 1)
+            anchorDate = calendar.startOfDay(for: startDate)
+            
+        case .oneMonth:
+            startDate = calendar.date(byAdding: .day, value: -30, to: now) ?? now
+            interval = DateComponents(day: 1)
+            anchorDate = calendar.startOfDay(for: startDate)
+            
+        case .threeMonth:
+            startDate = calendar.date(byAdding: .day, value: -90, to: now) ?? now
+            interval = DateComponents(weekOfYear: 1)
+            anchorDate = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: startDate)) ?? startDate
+            
+        case .oneYear:
+            startDate = calendar.date(byAdding: .year, value: -1, to: now) ?? now
+            interval = DateComponents(month: 1)
+            anchorDate = calendar.date(from: calendar.dateComponents([.year, .month], from: startDate)) ?? startDate
+            
+        case .yearToDate:
+            startDate = calendar.date(from: calendar.dateComponents([.year], from: now)) ?? now
+            interval = DateComponents(month: 1)
+            anchorDate = startDate
+        }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: now)
+        
+        let query = HKStatisticsCollectionQuery(
+            quantityType: steps,
+            quantitySamplePredicate: predicate,
+            options: .cumulativeSum,
+            anchorDate: anchorDate,
+            intervalComponents: interval
+        )
+        
+        query.initialResultsHandler = { query, results, error in
+            guard let results = results, error == nil else {
+                completion(.failure(error ?? URLError(.badURL)))
+                return
+            }
+            
+            var stepDataArray: [StepModel] = []
+            
+            results.enumerateStatistics(from: startDate, to: now) { statistics, stop in
+                if let sum = statistics.sumQuantity() {
+                    let stepCount = Int(sum.doubleValue(for: .count()))
+                    let stepData = StepModel(date: statistics.startDate, count: stepCount)
+                    stepDataArray.append(stepData)
+                }
+            }
+            
+            completion(.success(stepDataArray))
+        }
+        
+        healthStore.execute(query)
+    }
+}
 

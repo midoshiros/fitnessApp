@@ -5,7 +5,7 @@
 //  Created by Ahmad Hamdy on 12/12/2025.
 //
 
-internal import SwiftUI
+import SwiftUI
 
 @main
 struct fitnessApp: App {

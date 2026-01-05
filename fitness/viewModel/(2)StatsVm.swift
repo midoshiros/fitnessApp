@@ -43,4 +43,19 @@ class StatsVm {
         
         return []
     }
+    
+    
+    func fetchChartData(for option: ChartOptions, completion: @escaping ([StepModel]) -> Void) {
+        HealthManager.shared.fetchChartData(for: option) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let data):
+                    completion(data)
+                case .failure:
+                    completion(self.generateData(for: option))
+                }
+            }
+        }
+    }
+    
 }

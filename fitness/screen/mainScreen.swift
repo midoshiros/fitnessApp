@@ -5,7 +5,7 @@
 //  Created by Ahmad Hamdy on 12/12/2025.
 //
 
-internal import SwiftUI
+import SwiftUI
 
 struct MainScreen: View {
     @State private var selectedTab = "Home"
@@ -23,6 +23,14 @@ struct MainScreen: View {
                     Label("Charts", systemImage: "chart.line.uptrend.xyaxis")
                 }
                 .tag("History")
+        
+            Leaderboard()
+                .tabItem {
+                    Label("Leaderboard", systemImage: "list.bullet")
+                }
+                .tag("Leaderboard")
+        
+            
         }
         .tint(.green)
     }

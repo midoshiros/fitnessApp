@@ -5,7 +5,7 @@
 //  Created by Ahmad Hamdy on 14/12/2025.
 //
 
-internal import SwiftUI
+import SwiftUI
 
 
 struct ActivtyCard: View {

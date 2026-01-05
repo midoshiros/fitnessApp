@@ -1,4 +1,5 @@
-internal import SwiftUI
+
+import SwiftUI
 import Charts
 
 
@@ -71,7 +72,9 @@ struct chart: View {
                     Button {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             selectedOption = option
-                            chartData = viewModel.generateData(for: option)
+                            viewModel.fetchChartData(for: option) { data in
+                                chartData = data
+                            }
                         }
                     } label: {
                         Text(option.rawValue)
@@ -89,7 +92,9 @@ struct chart: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .onAppear {
-            chartData = viewModel.generateData(for: selectedOption)
+            viewModel.fetchChartData(for: selectedOption) { data in
+                chartData = data
+            }
         }
     }
     
