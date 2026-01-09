@@ -41,8 +41,7 @@ class LeaderboardVm
 struct Leaderboard: View {
     
     @State var vm = LeaderboardVm()
-    @AppStorage("username") var username: String?
-    @State var showTerms = false
+    @Binding var showTerms : Bool
     
     var body: some View {
         VStack{
@@ -86,5 +85,5 @@ struct Leaderboard: View {
 }
 
 #Preview {
-    Leaderboard()
+    Leaderboard(showTerms: .constant(false))
 }

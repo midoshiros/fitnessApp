@@ -8,7 +8,10 @@
 import SwiftUI
 
 struct MainScreen: View {
+    
     @State private var selectedTab = "Home"
+    @AppStorage("username") var username: String?
+    @State var showTerms = false
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -24,7 +27,7 @@ struct MainScreen: View {
                 }
                 .tag("History")
         
-            Leaderboard()
+            Leaderboard(showTerms: $showTerms)
                 .tabItem {
                     Label("Leaderboard", systemImage: "list.bullet")
                 }
@@ -33,6 +36,11 @@ struct MainScreen: View {
             
         }
         .tint(.green)
+        .onAppear {
+                    if username == nil {
+                        showTerms = true
+                    }
+                }
     }
 }
 
