@@ -81,6 +81,13 @@ struct Leaderboard: View {
         .fullScreenCover(isPresented: $showTerms) {
             Terms()
         }
+        .task {
+            do{
+                try await DatabaseManger.shared.fetchLeaderboard()
+            }catch{
+                print(error.localizedDescription)
+            }
+        }
     }
 }
 
